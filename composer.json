@@ -1,0 +1,8 @@
+{
+    "require": {
+        "mikehaertl/php-pdftk": "^0.13.0",
+        "geekcom/phpjasper": "^3.4",
+        "mpdf/mpdf": "8.2.3",
+        "phpoffice/phpspreadsheet": "^1.25"
+    }
+}
