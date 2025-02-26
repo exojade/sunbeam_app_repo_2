@@ -38,7 +38,7 @@ $total_subjects = query("SELECT COUNT(DISTINCT subject_id) AS count
             <div class="small-box bg-info">
               <div class="inner">
                 <h3><?php echo($total_advisory[0]["count"]); ?></h3>
-                <p>Total Advisory Class</p>
+                <p>Total Advisory Class for this School Year</p>
               </div>
               <div class="icon">
                 <i class="ion ion-bag"></i>
@@ -55,7 +55,7 @@ $total_subjects = query("SELECT COUNT(DISTINCT subject_id) AS count
               <div class="inner">
                 <h3><?php echo($total_students[0]["count"]); ?></h3>
 
-                <p>Total Student</p>
+                <p>Total Student for this School Year</p>
               </div>
               <div class="icon">
                 <i class="ion ion-person-add"></i>
@@ -69,7 +69,7 @@ $total_subjects = query("SELECT COUNT(DISTINCT subject_id) AS count
             <div class="small-box bg-warning">
               <div class="inner">
                 <h3><?php echo($total_subjects[0]["count"]); ?></h3>
-                <p>Total Subjects</p>
+                <p>Total Subjects for this School Year</p>
               </div>
               <div class="icon">
                 <i class="ion ion-pie-graph"></i>
