@@ -83,7 +83,7 @@ GROUP BY
 
     ?>
 
-<?php $alltime_payment = query("select sum(amount_paid) as total from payment where or_number is not null"); ?>
+<?php $alltime_payment = query("select sum(amount_paid) as total from payment where or_number is not null and syid = ?", $sy["syid"]); ?>
 <?php $today_payment = query("SELECT IFNULL(SUM(amount_paid), 0) AS total 
                         FROM payment 
                         WHERE or_number IS NOT NULL 
@@ -119,7 +119,7 @@ for ($i = 2; $i <= 11; $i++) {
             <div class="small-box bg-info">
               <div class="inner">
                 <h3><?php echo(to_peso($alltime_payment[0]["total"])); ?></h3>
-                <p>All Time Received Payment</p>
+                <p>Received Payment this School Year</p>
               </div>
               <div class="icon">
                 <i class="ion ion-bag"></i>
