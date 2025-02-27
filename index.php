@@ -43,6 +43,8 @@
 				require 'public/schedule_system/schedule.php';
 			else if ($request == 'enrollment')
 				require 'public/enrollment_system/enrollment.php';
+			else if ($request == 'notifications')
+				require 'public/notifications_system/notifications.php';
 			else if ($request == 'section')
 				require 'public/section_system/section.php';
 			else if ($request == 'parents')

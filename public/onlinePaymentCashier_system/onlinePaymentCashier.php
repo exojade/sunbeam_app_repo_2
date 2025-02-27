@@ -406,6 +406,17 @@
 			endif;
 		endforeach;
 		query("update onlinepayment set status = 'DONE' where tblid = ?", $_POST["tblid"]);
+
+
+		
+
+		$Message = [];
+		$Message["message"] = $_SESSION["sunbeam_app"]["fullname"] . ": accepted your proof of payment thru online payment. Check this Transaction Code : ".$onlinePayment["transactionCode"]."";
+		$Message["link"] = "onlinePayment";
+		$theMessage = serialize($Message);
+		addNotification($onlinePayment["paidBy"],$theMessage, $_SESSION["sunbeam_app"]["userid"]);
+
+
 		$res_arr = [
 			"result" => "success",
 			"title" => "Success",
@@ -437,8 +448,7 @@
 			$baseQuery = "select o.*, u.fullname from onlinepayment o
 							left join users u
 							on u.id = o.paidBy
-			" . $where;
-
+			" . $where . " order by o.status asc, transactionDate desc";
 			$bank = query("select * from bankdetails");
 			$Bank = [];
 			foreach($bank as $row):
@@ -462,9 +472,9 @@
 
 
 				if($row["status"] == "PENDING"):
-					$data[$i]["action"] = '<a href="#" data-id="'.$row["tblid"].'" data-target="#verifyOnlinePaymentModal" data-toggle="modal" class="btn btn-block btn-warning">Verify</a>';
+					$data[$i]["action"] = '<a href="#" data-id="'.$row["tblid"].'" data-target="#verifyOnlinePaymentModal" data-toggle="modal" class="btn btn-sm btn-block btn-warning">Verify</a>';
 				else:
-					$data[$i]["action"] = '<a href="#" class="btn btn-block btn-info">Details</a>';
+					$data[$i]["action"] = '<a href="#" class="btn btn-block btn-sm btn-info">Details</a>';
 				endif;
 
 

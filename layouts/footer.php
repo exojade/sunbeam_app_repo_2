@@ -134,7 +134,9 @@ $(document).on('submit', '.generic_form_trigger', function(e) {
 });
 
 
-
+$(document).on('click', '.deym', function() {
+    $(this).dropdown('toggle');
+});
 $(document).on('submit', '.generic_form_no_trigger', function(e) {
     e.preventDefault(); // Prevent the default form submission
 

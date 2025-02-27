@@ -60,7 +60,9 @@
                     <th>Document</th>
                     <th>Student</th>
                     <th>Status</th>
-                    <th>Date Requested</th>
+                    <th>Requested</th>
+                    <th>Due Date</th>
+                    <th>Claimed</th>
                     <!-- <th width="10%">Action</th> -->
                   </tr>
                   </thead>
@@ -180,6 +182,27 @@ $('#updateStatusModal').on('show.bs.modal', function (e) {
             success : function(data){
                 $('#updateStatusModal .fetched-data').html(data);
                 Swal.close();
+
+                $(document).on("change", "#request_status", function() {
+    var status = $(this).val();
+
+    if (status === "FOR CLAIM") {
+        $("#claim_due_date_container").show();
+        $("#date_claimed_container").hide();
+        $("input[name='claim_due_date']").attr("required", true);
+        $("input[name='date_claimed']").removeAttr("required");
+    } else if (status === "CLAIMED") {
+        $("#claim_due_date_container").hide();
+        $("#date_claimed_container").show();
+        $("input[name='claim_due_date']").removeAttr("required");
+        $("input[name='date_claimed']").attr("required", true);
+    } else {
+        $("#claim_due_date_container").hide();
+        $("#date_claimed_container").hide();
+        $("input[name='claim_due_date']").removeAttr("required");
+        $("input[name='date_claimed']").removeAttr("required");
+    }
+});
                 // $(".select2").select2();//Show fetched data from database
             }
         });
@@ -227,6 +250,8 @@ var datatable =
             }
         },
                     { data: 'dateRequested', "orderable": false  },
+                    { data: 'claim_due_date', "orderable": false  },
+                    { data: 'date_claimed', "orderable": false  },
 
                 ],
                 "footerCallback": function (row, data, start, end, display) {

@@ -82,6 +82,7 @@
                   <thead>
                   <tr>
                     <th></th>
+                    <th>Transaction Code</th>
                     <th>Paid By</th>
                     <th>Date</th>
                     <th>Amount Paid</th>
@@ -147,6 +148,7 @@ var datatable =
                 },
                 'columns': [
                     { data: 'action', "orderable": false  },
+                    { data: 'transactionCode', "orderable": false  },
                     { data: 'fullname', "orderable": false  },
                     { data: 'transactionDate', "orderable": false  },
                     {

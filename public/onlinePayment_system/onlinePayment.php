@@ -182,7 +182,7 @@ GROUP BY
     e.student_id
             ", $currentInstallmentNumber, $syid);
 
-			$transactionCode = create_uuid("T");
+			$transactionCode = create_trackid("T");
 			$target_pdf = "uploads/proofPayment/";
 
 			if($_FILES["proofPayment"]["size"] != 0){
@@ -211,6 +211,18 @@ GROUP BY
 		query("insert INTO onlinepayment (transactionCode, amount, proofPayment, status, transactionDate,paidBy,bankDetailsId,installment_number,syid) 
                     VALUES(?,?,?,?,?,?,?,?,?)", 
                 	$transactionCode, $totalAmount, $target, "PENDING", date("Y-m-d H:i:s"), $_SESSION["sunbeam_app"]["userid"], $_POST["bank"],$currentInstallmentNumber,$syid);
+					
+					
+					$Message = [];
+					$Message["message"] = $_SESSION["sunbeam_app"]["fullname"] . " have a new online payment request awaiting your acceptance. Please review and take action. Transaction Code : ".$transactionCode."";
+					$Message["link"] = "onlinePaymentCashier";
+					$theMessage = serialize($Message);
+					$users = query("select * from users where role = 'cashier'");
+					foreach($users as $row):
+						addNotification($row["id"],$theMessage, $_SESSION["sunbeam_app"]["userid"]);
+					endforeach;
+					
+					
 					$res_arr = [
 						"result" => "success",
 						"title" => "Success",
@@ -219,6 +231,8 @@ GROUP BY
 						// "html" => '<a href="#">View or Print '.$transaction_id.'</a>'
 						];
 						echo json_encode($res_arr); exit();
+		
+
 			
 			
 		elseif($_POST["action"] == "onlinePaymentList"):
@@ -234,7 +248,7 @@ GROUP BY
 			if(isset($_REQUEST["paidBy"])):
 				$where .= " and paidBy = '".$_REQUEST["paidBy"]."'";
 			endif;
-			$baseQuery = "select * from onlinepayment " . $where;
+			$baseQuery = "select * from onlinepayment " . $where . " order by status asc, transactionDate desc";
 
 			$bank = query("select * from bankdetails");
 			$Bank = [];

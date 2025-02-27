@@ -65,40 +65,59 @@
     padding: .5rem 1rem !important; margin: 0 !important;"><b>Active School Year:</b> <?php echo($sy["school_year"]); ?></h5>
       </li>
 
-      <?php if($_SESSION["sunbeam_app"]["role"] == "admin"): ?>
+      <?php if($_SESSION["sunbeam_app"]["role"] == "admin" || $_SESSION["sunbeam_app"]["role"] == "parent" || $_SESSION["sunbeam_app"]["role"] == "cashier"): ?>
 
-        <li class="nav-item dropdown ">
-        <a class="nav-link" href="documentRequest">
-          <i class="fas fa-bell text-white"></i>
+        <li class="nav-item dropdown">
+        <a class="nav-link deym" data-toggle="dropdown" href="#">
+          <i class="fas fa-bell text-warning"></i>
 
-          <?php $documentCount = query("select count(*) as count from documentrequest where request_status in ('PENDING', 'FOR CLAIM')"); ?>
-          <?php if($documentCount[0]["count"] != 0): ?>
-            <span class="badge badge-danger navbar-badge"><?php echo($documentCount[0]["count"]); ?></span>
+          <?php $notifications = query("select count(*) as count from notification where receiver_id = ? and read_at is null", $_SESSION["sunbeam_app"]["userid"]); ?>
+          <?php if($notifications[0]["count"] != 0): ?>
+            <span class="badge badge-danger navbar-badge"><?php echo($notifications[0]["count"]); ?></span>
           <?php endif; ?>
-
-
-          
         </a>
-      </li>
-
-
-        
-      <?php elseif($_SESSION["sunbeam_app"]["role"] == "parent"): ?>
-        <li class="nav-item dropdown ">
-        <a class="nav-link" href="documentRequest">
-          <i class="fas fa-bell text-white"></i>
-
-          <?php $documentCount = query("select count(*) as count from documentrequest where request_status in ('PENDING', 'FOR CLAIM') and parent_id = ?", $_SESSION["sunbeam_app"]["userid"]); ?>
-          <?php if($documentCount[0]["count"] != 0): ?>
-            <span class="badge badge-danger navbar-badge"><?php echo($documentCount[0]["count"]); ?></span>
-          <?php endif; ?>
-
-
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="max-height: 500px; overflow-y: auto; width:500px !important; max-width: 500px !important;">
           
-        </a>
-      </li>
+        <?php if($notifications[0]["count"] != 0): ?>
+          <?php $myNotif = query("select * from notification where receiver_id = ? and read_at is null", $_SESSION["sunbeam_app"]["userid"]); ?>
+       
 
+          <?php foreach($myNotif as $row): 
+            $message = unserialize($row["message"]);
+            $timeAgo = timeAgo($row["created"]);
+            ?>
+            <a href="notifications?action=read&id=<?php echo($row["notification_id"]); ?>" class="dropdown-item">
+            <!-- Message Start -->
+            <div class="media">
+              <div class="media-body">
+                <p class="text-sm"><?php echo($message["message"]); ?></p>
+                <p class="text-sm text-muted"><i class="far fa-clock mr-1"></i> <?php echo($timeAgo); ?></p>
+              </div>
+            </div>
+            <!-- Message End -->
+          </a>
+          <div class="dropdown-divider"></div>
+          <?php endforeach; ?>
+
+        <?php else: ?>
+          <div class="dropdown-divider"></div>
+          <a href="#" class="dropdown-item">
+          
+          <div class="media">
+            <div class="media-body text-center">
+              No unread notification!
+            </div>
+          </div>
+          </a>
+          <div class="dropdown-divider"></div>
+
+        <?php endif; ?>
+          <a href="notifications" class="dropdown-item dropdown-footer">See All Notifications</a>
+        </div>
+      </li>
       <?php endif; ?>
+
+
 
    
 

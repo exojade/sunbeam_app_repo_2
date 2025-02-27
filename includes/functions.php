@@ -87,6 +87,39 @@
         return($number);
     }
 
+    function addNotification($receiver_id, $message, $sender_id){
+        query("insert INTO notification (receiver_id, message, created, sender_id) 
+            VALUES(?,?,?,?)", 
+        $receiver_id, $message, time(), $sender_id);
+    }
+
+    function timeAgo($timestamp) {
+        $time_difference = time() - $timestamp;
+    
+        if ($time_difference < 1) {
+            return 'Just now';
+        }
+    
+        $condition = array( 
+            12 * 30 * 24 * 60 * 60 => 'year',
+            30 * 24 * 60 * 60 => 'month',
+            24 * 60 * 60 => 'day',
+            60 * 60 => 'hour',
+            60 => 'minute',
+            1 => 'second'
+        );
+    
+        foreach ($condition as $secs => $str) {
+            $d = $time_difference / $secs;
+    
+            if ($d >= 1) {
+                $t = round($d);
+                return $t . ' ' . $str . ($t > 1 ? 's' : '') . ' ago';
+            }
+        }
+    }
+    
+
     function add_log($activity, $user){
 
         $log_id = create_uuid("LOG");

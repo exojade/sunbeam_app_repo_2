@@ -7,7 +7,7 @@
 
 
 		if($_POST["action"] == "request"):
-			// dump($_POST);
+			// dump($_SESSION);
 
 			query("insert INTO documentrequest (
 				document,
@@ -24,12 +24,24 @@
 			date("Y-m-d H:i:s")
 		);
 
+		$Message = [];
+
+
+		$Message["message"] = $_SESSION["sunbeam_app"]["fullname"] . " requested ".$_POST["documentType"]."";
+		$Message["link"] = "documentRequest";
+		$theMessage = serialize($Message);
+
+		$users = query("select * from users where role = 'admin'");
+		foreach($users as $row):
+			addNotification($row["id"],$theMessage, $_SESSION["sunbeam_app"]["userid"]);
+		endforeach;
+
 
 
 		$res_arr = [
 			"result" => "success",
-			"title" => "Success",
-			"message" => "REQUEST SUCCESSFULLY",
+			"title" => "Document Request",
+			"message" => "Successfully requested Document. Kindly wait for the claim notification for the document request!",
 			"link" => "refresh",
 			// "html" => '<a href="#">View or Print '.$transaction_id.'</a>'
 			];
@@ -153,17 +165,38 @@
 
 			$document = query("select * from documentrequest where tblid = ?", $_POST["tblid"]);
 			$document = $document[0];
+
+			$options = ["PENDING", "FOR CLAIM", "CLAIMED"];
+
 			$hint = '
 			<input type="hidden" name="tblid" value="'.$_POST["tblid"].'">
 			<div class="form-group">
-                    <label>Document Statu</label>
-                    <select required class="form-control" name="request_status">
-                     <option value="'.$document["request_status"].'">'.$document["request_status"].'</option>
-					 <option value="PENDING">PENDING</option>
-					 <option value="FOR CLAIM">FOR CLAIM</option>
-					 <option value="CLAIMED">CLAIMED</option>
+                    <label>Document Status</label>
+                    <select id="request_status" required class="form-control" name="request_status">
+					';
+
+					foreach($options as $row):
+						if($row == $document["request_status"]):
+							$hint .='<option selected value="'.$row.'">'.$row.'</option>';
+						else:
+							$hint .='<option selected value="'.$row.'">'.$row.'</option>';
+						endif;
+					endforeach;
+
+			$hint.='
                     </select>
                   </div>
+				  
+
+				  <div class="form-group" id="claim_due_date_container" style="display: none;">
+					<label>Claim Due Date</label>
+					<input required type="date" class="form-control" name="claim_due_date" value="'.$document["claim_due_date"].'">
+				</div>
+
+				<div class="form-group" id="date_claimed_container" style="display: none;">
+					<label>Date Claimed</label>
+					<input required type="date" class="form-control" name="date_claimed" value="'.$document["date_claimed"].'">
+				</div>
 			';
 
 			echo($hint);
@@ -171,7 +204,30 @@
 		elseif($_POST["action"] == "updateDocumentRequest"):
 			// dump($_POST);
 
-			query("update documentrequest set request_status = ? where tblid = ?", $_POST["request_status"], $_POST["tblid"]);
+			$document_request=query("select dr.*, concat(s.firstname, ' ', s.lastname) as student_name from documentrequest dr left join student s
+										on s.student_id = dr.student_id where tblid =  ?", $_POST["tblid"]);
+			$document_request = $document_request[0];
+			query("update documentrequest set request_status = ?, claim_due_date = ?, date_claimed = ? where tblid = ?",
+					  $_POST["request_status"],$_POST["claim_due_date"], $_POST["date_claimed"], $_POST["tblid"]);
+
+
+					  $Message = [];
+
+		if($_POST["request_status"] == "FOR CLAIM"):
+			$Message["message"] = $_SESSION["sunbeam_app"]["fullname"] . " :  You may now claim your request document ".$document_request["document"]." for Student: ".$document_request["student_name"]." on ".date("F d, Y", strtotime($_POST["claim_due_date"]))."";
+			$Message["link"] = "documentRequest";
+			$theMessage = serialize($Message);
+			addNotification($document_request["parent_id"],$theMessage, $_SESSION["sunbeam_app"]["userid"]);
+		elseif($_POST["request_status"] == "CLAIMED"):
+			$Message["message"] = $_SESSION["sunbeam_app"]["fullname"] . " :  Parent claimed the requested document ".$document_request["document"]." for Student: ".$document_request["student_name"]." on ".date("F d, Y", strtotime($_POST["date_claimed"]))."";
+			$Message["link"] = "documentRequest";
+			$theMessage = serialize($Message);
+			addNotification($document_request["parent_id"],$theMessage, $_SESSION["sunbeam_app"]["userid"]);
+		endif;
+
+
+		
+
 
 			$res_arr = [
 				"result" => "success",
