@@ -154,10 +154,7 @@
         <i class="nav-icon fas fa-file"></i>
         <p>
           Document Request
-          <?php $documentCount = query("select count(*) as count from documentrequest where request_status in ('PENDING', 'FOR CLAIM')"); ?>
-          <?php if($documentCount[0]["count"] != 0): ?>
-            <span class="right badge badge-danger"><?php echo($documentCount[0]["count"]); ?></span>
-          <?php endif; ?>
+   
           
         </p>
       </a>
@@ -316,11 +313,7 @@
         <i class="nav-icon fas fa-file"></i>
         <p>
           Document Request
-       
-          <?php $documentCount = query("select count(*) as count from documentrequest where request_status in ('PENDING', 'FOR CLAIM') and parent_id = ?", $_SESSION["sunbeam_app"]["userid"]); ?>
-          <?php if($documentCount[0]["count"] != 0): ?>
-            <span class="right badge badge-danger"><?php echo($documentCount[0]["count"]); ?></span>
-          <?php endif; ?>
+
         </p>
       </a>
   </li>

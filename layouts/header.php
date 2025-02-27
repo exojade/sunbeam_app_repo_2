@@ -65,6 +65,43 @@
     padding: .5rem 1rem !important; margin: 0 !important;"><b>Active School Year:</b> <?php echo($sy["school_year"]); ?></h5>
       </li>
 
+      <?php if($_SESSION["sunbeam_app"]["role"] == "admin"): ?>
+
+        <li class="nav-item dropdown ">
+        <a class="nav-link" href="documentRequest">
+          <i class="fas fa-bell text-white"></i>
+
+          <?php $documentCount = query("select count(*) as count from documentrequest where request_status in ('PENDING', 'FOR CLAIM')"); ?>
+          <?php if($documentCount[0]["count"] != 0): ?>
+            <span class="badge badge-danger navbar-badge"><?php echo($documentCount[0]["count"]); ?></span>
+          <?php endif; ?>
+
+
+          
+        </a>
+      </li>
+
+
+        
+      <?php elseif($_SESSION["sunbeam_app"]["role"] == "parent"): ?>
+        <li class="nav-item dropdown ">
+        <a class="nav-link" href="documentRequest">
+          <i class="fas fa-bell text-white"></i>
+
+          <?php $documentCount = query("select count(*) as count from documentrequest where request_status in ('PENDING', 'FOR CLAIM') and parent_id = ?", $_SESSION["sunbeam_app"]["userid"]); ?>
+          <?php if($documentCount[0]["count"] != 0): ?>
+            <span class="badge badge-danger navbar-badge"><?php echo($documentCount[0]["count"]); ?></span>
+          <?php endif; ?>
+
+
+          
+        </a>
+      </li>
+
+      <?php endif; ?>
+
+   
+
    
     </ul>
 

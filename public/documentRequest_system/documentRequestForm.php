@@ -11,7 +11,7 @@
       <div class="container-fluid">
         <div class="row mb-2">
         <div class="col">
-            <h1>Online Payment Cashier Module</h1>
+            <h1>Document Request</h1>
           </div>
          
         </div>
