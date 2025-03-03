@@ -49,6 +49,38 @@
         </div>
 
 
+    <div class="modal fade" id="modalViewDetails">
+          <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content ">
+              <div class="modal-header bg-primary">
+					    <h3 class="modal-title text-center">Online Payment Details</h3>
+              </div>
+              <div class="modal-body" style="-webkit-user-select: none;  /* Chrome all / Safari all */
+              -moz-user-select: none;     /* Firefox all */
+              -ms-user-select: none;  ">
+              <div class="fetched-data"></div> 
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="modal fade" id="modalViewDetailsPending">
+          <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content ">
+              <div class="modal-header bg-warning">
+					    <h3 class="modal-title text-center">Online Payment Details (PENDING)</h3>
+              </div>
+              <div class="modal-body" style="-webkit-user-select: none;  /* Chrome all / Safari all */
+              -moz-user-select: none;     /* Firefox all */
+              -ms-user-select: none;  ">
+              <div class="fetched-data"></div> 
+              </div>
+            </div>
+          </div>
+        </div>
+
+
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
@@ -190,6 +222,43 @@ var datatable =
                   bsCustomFileInput.init();
                 });
                 // $(".select2").select2();//Show fetched data from database
+            }
+        });
+     });
+
+
+
+     $('#modalViewDetails').on('show.bs.modal', function (e) {
+        var rowid = $(e.relatedTarget).data('id');
+        Swal.fire({title: 'Please wait...', imageUrl: 'AdminLTE_new/dist/img/loader.gif', showConfirmButton: false});
+        $.ajax({
+            type : 'post',
+            url : 'onlinePayment', //Here you will fetch records 
+            data: {
+               action: "modalViewDetails",
+               transactionCode: rowid
+            },
+            success : function(data){
+                $('#modalViewDetails .fetched-data').html(data);
+                Swal.close();
+            }
+        });
+     });
+
+
+     $('#modalViewDetailsPending').on('show.bs.modal', function (e) {
+        var rowid = $(e.relatedTarget).data('id');
+        Swal.fire({title: 'Please wait...', imageUrl: 'AdminLTE_new/dist/img/loader.gif', showConfirmButton: false});
+        $.ajax({
+            type : 'post',
+            url : 'onlinePayment', //Here you will fetch records 
+            data: {
+               action: "modalViewDetailsPending",
+               transactionCode: rowid
+            },
+            success : function(data){
+                $('#modalViewDetailsPending .fetched-data').html(data);
+                Swal.close();
             }
         });
      });

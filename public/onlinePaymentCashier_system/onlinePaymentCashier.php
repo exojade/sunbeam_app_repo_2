@@ -474,7 +474,7 @@
 				if($row["status"] == "PENDING"):
 					$data[$i]["action"] = '<a href="#" data-id="'.$row["tblid"].'" data-target="#verifyOnlinePaymentModal" data-toggle="modal" class="btn btn-sm btn-block btn-warning">Verify</a>';
 				else:
-					$data[$i]["action"] = '<a href="#" class="btn btn-block btn-sm btn-info">Details</a>';
+					$data[$i]["action"] = '<a href="#" data-toggle="modal" data-target="#modalViewDetails" data-id="'.$row["transactionCode"].'" class="btn btn-block btn-info btn-sm">View Details</a>';
 				endif;
 
 

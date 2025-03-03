@@ -270,7 +270,13 @@ GROUP BY
 
 			$i = 0;
 			foreach($data as $row):
-				$data[$i]["action"] = '<a href="#" class="btn btn-block btn-info btn-sm">View Details</a>';
+
+				if($row["status"] == "DONE"):
+					$data[$i]["action"] = '<a href="#" data-toggle="modal" data-target="#modalViewDetails" data-id="'.$row["transactionCode"].'" class="btn btn-block btn-info btn-sm">View Details</a>';
+				else:
+					$data[$i]["action"] = '<a href="#" data-toggle="modal" data-target="#modalViewDetailsPending" data-id="'.$row["transactionCode"].'" class="btn btn-block btn-warning btn-sm">View Details</a>';
+				endif;
+
 				$data[$i]["bank"] = $Bank[$row["bankDetailsId"]]["bankName"];
                 $i++;
             endforeach;
@@ -282,6 +288,225 @@ GROUP BY
             );
             echo json_encode($json_data);
 
+		elseif($_POST["action"] == "modalViewDetails"):
+
+			$onlinePayment = query("select op.*, b.bankName from onlinepayment op
+									left join bankdetails b
+									on b.tblid = op.bankDetailsId
+									where op.transactionCode = ?", $_POST["transactionCode"]);	
+			$onlinePayment = $onlinePayment[0];
+
+
+			// $parentId = $_SESSION["sunbeam_app"]["userid"];
+			$myStudents = query("select s.student_id from student s
+									left join enrollment e
+									on e.student_id = s.student_id
+									where s.parent_id = ?
+									and e.syid = ?", $onlinePayment["paidBy"], $onlinePayment["syid"]);
+			// dump($myStudents);
+
+			$studentIds = array_map(function($item) {
+				return $item['student_id'];
+			}, $myStudents);
+
+			$studentIdsString = "'".implode("','", $studentIds)."'";
+			
+
+				// dump($PaymentBalance);
+
+
+
+
+
+
+
+
+
+			$onlinePaymentStudents = query("
+			select ops.*, concat(s.lastname, ', ', s.firstname) as fullname from 
+				onlinepaymentstudents ops
+			left join student s
+			on s.student_id = ops.student_id
+			where ops.transactionCode = ?
+			", $onlinePayment["transactionCode"]);
+			// dump($onlinePaymentStudents);
+			$hint='
+			<input type="hidden" name="action" value="acceptPayment">
+			<input type="hidden" name="tblid" value="'.$onlinePayment["tblid"].'">
+			<table class="table table-bordered">
+				<thead>
+					<th>Student</th>
+					<th>Payment</th>
+					<th>OR Number</th>
+				</thead>
+				<tbody>
+			';
+
+
+			$payment = query("select * from payment where onlinePaymentId = ?", $onlinePayment["tblid"]);
+			$Payment = [];
+			foreach($payment as $row):
+				$Payment[$row["enrollment_id"]] = $row;
+			endforeach;
+			// dump($Payment);
+
+
+			foreach($onlinePaymentStudents as $row):
+					$hint.='<tr>';
+						$hint.='<td>'.$row["fullname"].'</td>';
+						$hint.='<td>'.to_peso($row["amount_paid"]).'</td>';
+						$hint.='<td>'.$Payment[$row["enrollment_id"]]["or_number"].'</td>';
+					$hint.='</tr>';
+			endforeach;
+			$hint.='</tbody>';
+			$hint.='<tfoot>';
+				$hint.='<th>Total</th>';
+				$hint.='<th>₱ '.number_format($onlinePayment["amount"],2).'</th>';
+				$hint.='<th>OR</th>';
+			$hint.='</tfoot>';
+			$hint.='</table>';
+
+			$hint.='
+			<div class="row">
+				<div class="col">
+					<div class="form-group">
+							<input class="form-control" disabled value="'.$onlinePayment["bankName"].'" placeholder="Enter amount to Pay">
+                      </div>
+				</div>
+
+				<div class="col">
+					<a href="'.$onlinePayment["proofPayment"].'" target="_blank" class="btn btn-info btn-block">View Proof of Payment</a>
+				</div>
+
+			</div>
+			';
+			echo($hint);
+
+		elseif($_POST["action"] == "modalViewDetailsPending"):
+			$onlinePayment = query("select op.*, b.bankName from onlinepayment op
+			left join bankdetails b
+			on b.tblid = op.bankDetailsId
+			where op.transactionCode = ?", $_POST["transactionCode"]);	
+				$onlinePayment = $onlinePayment[0];
+
+
+				// $parentId = $_SESSION["sunbeam_app"]["userid"];
+				$myStudents = query("select s.student_id from student s
+							left join enrollment e
+							on e.student_id = s.student_id
+							where s.parent_id = ?
+							and e.syid = ?", $onlinePayment["paidBy"], $onlinePayment["syid"]);
+				// dump($myStudents);
+
+				$studentIds = array_map(function($item) {
+				return $item['student_id'];
+				}, $myStudents);
+
+				$studentIdsString = "'".implode("','", $studentIds)."'";
+				$currentInstallmentNumber = $onlinePayment["installment_number"];
+				$payment_balance = query("
+				SELECT 
+				e.student_id,
+				CONCAT(s.lastname, ', ', s.firstname) AS fullname,
+				-- Urgent amount for specified installment number
+				SUM(CASE 
+					WHEN ins.installment_number <= ?
+					THEN CASE WHEN is_paid = 'CREDIT' OR is_paid = 'NOT DONE' THEN amount_due ELSE 0 END 
+					ELSE 0 
+				END) AS urgent_amount,
+
+				-- Total outstanding balance (all installments regardless of installment number)
+				SUM(CASE 
+					WHEN is_paid = 'CREDIT' OR is_paid = 'NOT DONE' 
+					THEN amount_due 
+					ELSE 0 
+				END) AS total_outstanding_balance
+
+				FROM 
+				installment ins
+				LEFT JOIN 
+				enrollment e ON e.enrollment_id = ins.enrollment_id
+				LEFT JOIN 
+				student s ON s.student_id = e.student_id
+
+				WHERE 
+				ins.syid = ?
+				AND e.student_id IN (".$studentIdsString.")
+				GROUP BY 
+				e.student_id
+				", $currentInstallmentNumber, $onlinePayment["syid"]);
+
+				$PaymentBalance = [];
+				foreach($payment_balance as $row):
+				$PaymentBalance[$row["student_id"]] = $row;
+				endforeach;
+
+				// dump($PaymentBalance);
+
+
+
+
+
+
+
+
+
+				$onlinePaymentStudents = query("
+				select ops.*, concat(s.lastname, ', ', s.firstname) as fullname from 
+				onlinepaymentstudents ops
+				left join student s
+				on s.student_id = ops.student_id
+				where ops.transactionCode = ?
+				", $onlinePayment["transactionCode"]);
+				// dump($onlinePaymentStudents);
+
+				$hint='
+				<input type="hidden" name="action" value="acceptPayment">
+				<input type="hidden" name="tblid" value="'.$onlinePayment["tblid"].'">
+				<table class="table table-bordered">
+				<thead>
+				<th>Student</th>
+				<th>Due Amount</th>
+				<th>Balance</th>
+				<th>To Pay</th>
+				<th>OR Number</th>
+				</thead>
+				<tbody>
+				';
+				foreach($onlinePaymentStudents as $row):
+				if(isset($PaymentBalance[$row["student_id"]])):
+				$hint.='<tr>';
+				$hint.='<td>'.$row["fullname"].'</td>';
+				$hint.='<td>₱ '.number_format($PaymentBalance[$row["student_id"]]["urgent_amount"], 2).'</td>';
+				$hint.='<td>₱ '.number_format($PaymentBalance[$row["student_id"]]["total_outstanding_balance"],2).'</td>';
+				$hint.='<td><input disabled class="form-control" type="number" value="'.$row["amount_paid"].'" step="0.01" name="'.$row["student_id"].'" max="'.$PaymentBalance[$row["student_id"]]["total_outstanding_balance"].'" required placeholder="Enter amount to Pay"></td>';
+				$hint.='<td><input disabled class="form-control" type="text" required step="0.01" name="OR_'.$row["student_id"].'" required placeholder="Enter OR Number..."></td>';
+				$hint.='</tr>';
+				endif;
+				endforeach;
+				$hint.='</tbody>';
+				$hint.='<tfoot>';
+				$hint.='<th colspan="3">Total</th>';
+				$hint.='<th>₱ '.number_format($onlinePayment["amount"],2).'</th>';
+				$hint.='<th>OR</th>';
+				$hint.='</tfoot>';
+				$hint.='</table>';
+
+				$hint.='
+				<div class="row">
+				<div class="col">
+				<div class="form-group">
+					<input class="form-control" disabled value="'.$onlinePayment["bankName"].'" placeholder="Enter amount to Pay">
+				</div>
+				</div>
+
+				<div class="col">
+				<a href="'.$onlinePayment["proofPayment"].'" target="_blank" class="btn btn-info btn-block">View Proof of Payment</a>
+				</div>
+
+				</div>
+				';
+				echo($hint);
 
 		endif;
     }

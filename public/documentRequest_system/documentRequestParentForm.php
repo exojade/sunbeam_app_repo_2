@@ -13,58 +13,31 @@
         <div class="col">
             <h1>Document Request Module</h1>
           </div>
+          <div class="col">
+            <a href="#" data-toggle="modal" data-target="#modalNewRequest" class="float-right btn btn-primary">New Request</a>
+          </div>
          
         </div>
       </div><!-- /.container-fluid -->
     </section>
 
 
-
-
-
-
-    <!-- Main content -->
-    <section class="content">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-8">
-            <!-- Default box -->
-            <div class="card">
-              <div class="card-body table-responsive">
-                <table id="ajaxDatatable" class="table table-bordered table-striped">
-                  <thead>
-                  <tr>
-                    <th></th>
-                    <th>Document</th>
-                    <th>Student</th>
-                    <th>Status</th>
-                    <th>Date Requested</th>
-                    <!-- <th width="10%">Action</th> -->
-                  </tr>
-                  </thead>
-               
-                  <tfoot>
-             
-                  </tfoot>
-                </table>
-              </div>
-              <!-- /.card-body -->
+    <div class="modal fade" id="modalNewRequest">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header bg-primary">
+              <h4 class="modal-title">New Document Request Modal</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
             </div>
-            <!-- /.card -->
-          </div>
-          <div class="col-4">
-
-          <div class="card">
-          <div class="card-header bg-info">
-                <h3 class="card-title">Request Form</h3>
-              </div>
-              <div class="card-body">
-              <div class="alert alert-warning alert-dismissible">
+            <div class="modal-body">
+            <div class="alert alert-warning alert-dismissible">
                   <h5><i class="icon fas fa-exclamation-triangle"></i> Note!</h5>
                   The duration for obtaining the document may depend on the type of document being requested.
                 </div>
 
-                <form class="generic_form_trigger" id="requestForm" data-url="documentRequest">
+                <form class="generic_form_trigger" id="requestForm" data-url="documentRequest" data-title="New Document Request" data-message="Are you sure you want to continue?">
                   <input type="hidden" name="action" value="request">
                   <input type="hidden" name="parent_id" value="<?php echo($_SESSION["sunbeam_app"]["userid"]); ?>">
 
@@ -92,19 +65,50 @@
                   <button class="btn btn-primary" type="submit">Submit</button>
 
                 </form>
-            
-              </div>
-              <!-- /.card-body -->
             </div>
-
           </div>
+        </div>
+      </div>
+
+
+
+
+
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-12">
+            <!-- Default box -->
+            <div class="card">
+              <div class="card-body table-responsive">
+                <table id="ajaxDatatable" class="table table-bordered table-striped">
+                  <thead>
+                  <tr>
+                    <th></th>
+                    <th>Document</th>
+                    <th>Student</th>
+                    <th>Status</th>
+                    <th>Date Requested</th>
+                    <th>Due Date</th>
+                    <th>Date Claimed</th>
+                  </tr>
+                  </thead>
+                  <tfoot>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+          
         </div>
       </div>
     </section>
     <!-- /.content -->
   </div>
-  <script src="AdminLTE/bower_components/select2/dist/js/select2.full.min.js"></script>
-  <script src="AdminLTE_new/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="AdminLTE/bower_components/select2/dist/js/select2.full.min.js"></script>
+<script src="AdminLTE_new/plugins/datatables/jquery.dataTables.min.js"></script>
 <script src="AdminLTE_new/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
 <script src="AdminLTE_new/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
 <script src="AdminLTE_new/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
@@ -171,22 +175,24 @@ var datatable =
                     { data: 'document', "orderable": false  },
                     { data: 'student', "orderable": false  },
                     { 
-            data: 'request_status',
-            orderable: false,
-            render: function(data, type, row) {
-                // Add custom class based on status
-                if (data === 'PENDING') {
-                    return '<span class="text-warning">PENDING</span>';
-                } else if (data === 'FOR CLAIM') {
-                    return '<span class="text-info">FOR CLAIM</span>';
-                } else if (data === 'CLAIMED') {
-                    return '<span class="text-success">CLAIMED</span>';
-                } else {
-                    return data; // Default for other statuses
-                }
-            }
-        },
+                        data: 'request_status',
+                        orderable: false,
+                        render: function(data, type, row) {
+                            // Add custom class based on status
+                            if (data === 'PENDING') {
+                                return '<span class="text-warning">PENDING</span>';
+                            } else if (data === 'FOR CLAIM') {
+                                return '<span class="text-info">FOR CLAIM</span>';
+                            } else if (data === 'CLAIMED') {
+                                return '<span class="text-success">CLAIMED</span>';
+                            } else {
+                                return data; // Default for other statuses
+                            }
+                        }
+                    },
                     { data: 'dateRequested', "orderable": false  },
+                    { data: 'claim_due_date', "orderable": false  },
+                    { data: 'date_claimed', "orderable": false  },
 
                 ],
                 "footerCallback": function (row, data, start, end, display) {

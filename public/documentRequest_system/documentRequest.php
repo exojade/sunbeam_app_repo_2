@@ -86,7 +86,9 @@
 
 			$i = 0;
 			foreach($data as $row):
-
+				$data[$i]["dateRequested"] = date("M d Y", strtotime($row["dateRequested"]));
+				$data[$i]["claim_due_date"] = date("M d Y", strtotime($row["claim_due_date"] . " 00:00:00"));
+				$data[$i]["date_claimed"] = date("M d Y", strtotime($row["date_claimed"] . " 00:00:00"));
 
 				if($row["request_status"] == "PENDING"):
 					$data[$i]["action"] = '
