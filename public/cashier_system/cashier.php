@@ -488,11 +488,11 @@ $html.='
 			<table id="feeTable" class="table table-bordered">
 				<tbody>
 				<tr>
-					<td style="padding:15px 0 15px 0;"><b>Fee</b></td>
-					<td><b>Original Amount</b></td>
-					<td><b>Cumulative</b></td>
-					<td><b>Payment</b></td>
-					<td><b>Remaining Balance</b></td>
+					<td style="padding:15px 0 15px 0;" width="30%"><b>Fee</b></td>
+					<td width="17%"><b>Original Amount</b></td>
+					<td width="17%"><b>Cumulative</b></td>
+					<td width="17%"><b>Payment</b></td>
+					<td width="17%"><b>Remaining Balance</b></td>
 				</tr>
 				';	
 				$total = 0;
