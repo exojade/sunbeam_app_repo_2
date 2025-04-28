@@ -116,6 +116,13 @@ $student = $student[0];
             </div>
             <div class="modal-body">
               <input type="hidden" id="totalVal">
+
+              <?php
+$priorityFees = query("select sum(fee_amount) as total from fees where grade_level = ? and priority = 'YES' and status = 'ACTIVE'", $enrollment["grade_level"]);
+          $priorityFees = $priorityFees[0]["total"];            
+              ?>
+
+
               <form class="generic_form_trigger" role="form" enctype="multipart/form-data" data-url="enrollment">
                 <input type="hidden" name="action" value="proceedDownpayment">
                 <input type="hidden" name="enrollment_id" value="<?php echo($_GET["id"]); ?>">
@@ -123,7 +130,7 @@ $student = $student[0];
                 <div class="col-md-12">
                 <div class="form-group">
                   <label>Downpayment</label>
-                  <input oninput="computeDownpayment()" id="downpaymentTextbox" required name="downpayment" type="number" step="0.01" class="form-control" placeholder="Enter ...">
+                  <input oninput="computeDownpayment()" min="<?php echo($priorityFees); ?>" id="downpaymentTextbox" required name="downpayment" type="number" step="0.01" class="form-control" placeholder="Minimum Downpayment : <?php echo(number_format($priorityFees)); ?>">
                 </div>
                 <div class="form-group">
                   <label>Official Receipt No.</label>
@@ -230,6 +237,7 @@ $student = $student[0];
                   <tr>
                     <th>Fee Title</th>
                     <th>Type</th>
+                    <th>Priority</th>
                     <th>Amount</th>
                     <th>Action</th>
                   </tr>
@@ -307,6 +315,7 @@ var datatable =
                 'columns': [
                     { data: 'fee', "orderable": false  },
                     { data: 'fee_type', "orderable": false  },
+                    { data: 'priority', "orderable": false  },
                     {
                         data: 'fee_amount', 
                         orderable: false,
@@ -331,7 +340,7 @@ var datatable =
 
     // Total over all pages
     var received = api
-        .column(2)
+        .column(3)
         .data()
         .reduce(function (a, b) {
             return intVal(a) + intVal(b);

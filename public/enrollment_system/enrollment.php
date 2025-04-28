@@ -24,11 +24,12 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 			$currSY = $currSY[0]["syid"];
 
 			$student_id = create_trackid("LRN405592-");
-			$nextId = query("show table status like 'student'");
-			$nextId = $nextId[0]["Auto_increment"];
-			$student_id = sprintf("LRN405592%08d", $nextId);
+			// $nextId = query("show table status like 'student'");
+			// $nextId = $nextId[0]["Auto_increment"];
+			// $student_id = sprintf("LRN405592%08d", $nextId);
 			// dump($nextId);
 
+			$student_id = $_POST["student_id"];
 				query("insert INTO student (
 					student_id,
 					firstname,
@@ -471,6 +472,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 			elseif($_POST["action"] == "proceedDownpayment"):
 				// dump($_SESSION);
+				// dump($_POST);
 				$enrollment = query("select * from enrollment where enrollment_id = ?", $_POST["enrollment_id"]);
 				$fixedFees = query("select * from fees where grade_level = ? and fee_type = 'MAIN' and status = 'ACTIVE'", $enrollment[0]["grade_level"]);
 				$otherFees = query("select * from enrollment_fees where enrollment_id = ?", $_POST["enrollment_id"]);
@@ -483,19 +485,20 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 						fee,
 						type,
 						amount,
-						status
+						status,
+						priority
 						) 
 					VALUES(
-						?,?,?,?,?
+						?,?,?,?,?,?
 						)", 
 					$_POST["enrollment_id"],
 					$row["fee_title"],
 					$row["fee_type"],
 					$row["fee_amount"],
-					"PAYMENT"
+					"PAYMENT",
+					$row["priority"]
 				);
 				endforeach;
-
 				foreach($otherFees as $row):
 					$total_fee += floatval($row["amount"]);
 				endforeach;
@@ -706,7 +709,8 @@ $subjects = query("
     f.fee_title AS fee,
     f.fee_amount,
     f.fee_type,
-    f.fees_id AS fee_id
+    f.fees_id AS fee_id,
+	f.priority
 FROM 
     fees f
 WHERE 
@@ -720,7 +724,8 @@ SELECT
     f.fee_title AS fee,
     ef.amount AS  fee_amount,
     f.fee_type,
-    f.fees_id AS fee_id
+    f.fees_id AS fee_id,
+	f.priority
 FROM 
     fees f
 JOIN 

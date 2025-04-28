@@ -100,6 +100,15 @@
                             </div>
 
                             <div class="form-group">
+                              <label>Priority <span class="color-red">*</span></label>
+                              <select style="width: 100%;" required name="priority" class="form-control select2" >
+                                  <option selected value="">Please select...</option>
+                                    <option value="YES">YES</option>
+                                    <option value="NO">NO</option>
+                              </select>
+                            </div>
+
+                            <div class="form-group">
                               <label>Amount </label>
                                 <input value="" name="fee_amount" step="0.01" type="number" class="form-control"  placeholder="Enter Fee Amount Here ..">
                             </div>
@@ -169,6 +178,7 @@
                       <th>Grade Level</th>
                       <th>Title</th>
                       <th>Type</th>
+                      <th>Priority</th>
                       <th>Amount</th>
                       <th>Status</th>
                     </tr>
@@ -247,6 +257,7 @@ var datatable =
                     { data: 'grade_level', "orderable": false  },
                     { data: 'fee_title', "orderable": false  },
                     { data: 'fee_type', "orderable": false },
+                    { data: 'priority', "orderable": false },
                     { 
                     data: 'fee_amount', 
                         "orderable": false,
@@ -271,7 +282,7 @@ var datatable =
 
                     // Total over all pages
                     received = api
-                        .column(4)
+                        .column(5)
                         .data()
                         .reduce(function (a, b) {
                             return intVal(a) + intVal(b);

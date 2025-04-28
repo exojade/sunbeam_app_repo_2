@@ -52,18 +52,32 @@
                 <div class="card-body">
             
                   <div class="row">
-                    <div class="col-md-12">
+                  <div class="col-md-12">
+
+                    <div class="form-group row">
+                        <label for="inputEmail3" value="EF2023-908201XN" class="col-sm-2 col-form-label"><span style="text-align:right !important;">Student ID</span></label>
+                        <div class="col-sm-10">
+                          <input required placeholder="Student Number" id="student_id" name="student_id" type="text" class="form-control" >
+                        </div>
+                      
+                    
+                        
+                      
+                      </div>
+
+
                       <div class="form-group row">
                         <label for="inputEmail3" value="EF2023-908201XN" class="col-sm-2 col-form-label"><span style="text-align:right !important;">Student's Name</span></label>
+                        <div class="col-sm-3">
+                          <input required placeholder="Last Name" name="lastname" type="text" class="form-control" id="inputEmail3" >
+                        </div>
                         <div class="col-sm-3">
                           <input required placeholder="First Name" name="firstname" type="text" class="form-control" id="inputEmail3" >
                         </div>
                         <div class="col-sm-3">
                           <input  placeholder="Middle Name" name="middlename" type="text" class="form-control" id="inputEmail3" >
                         </div>
-                        <div class="col-sm-3">
-                          <input required placeholder="Last Name" name="lastname" type="text" class="form-control" id="inputEmail3" >
-                        </div>
+                        
                         <div class="col-sm-1">
                           <input placeholder="Jr, I, II" name="nameExtension" type="text" class="form-control" id="inputEmail3" >
                         </div>
@@ -211,16 +225,18 @@ ORDER BY a.grade_level ASC", $sy["syid"]);
                   <hr>
                   <div id="parentSection">
                     <div class="form-group row">
+                      
                         <label for="inputEmail3"  class="col-sm-2 col-form-label"><span style="text-align:right !important;">Father's Name</span></label>
+                        <div class="col-sm-3">
+                          <input  placeholder="Last Name" name="father_lastname" type="text" class="form-control" id="inputEmail3" >
+                        </div>
                         <div class="col-sm-3">
                           <input  placeholder="First Name" name="father_firstname" type="text" class="form-control" id="inputEmail3" >
                         </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-4">
                           <input  placeholder="Middle Name" name="father_middlename" type="text" class="form-control" id="inputEmail3" >
                         </div>
-                        <div class="col-sm-4">
-                          <input  placeholder="Last Name" name="father_lastname" type="text" class="form-control" id="inputEmail3" >
-                        </div>
+                        
                       </div>
 
 
@@ -256,14 +272,15 @@ ORDER BY a.grade_level ASC", $sy["syid"]);
                     <div class="form-group row">
                         <label for="inputEmail3" value="EF2023-908201XN" class="col-sm-2 col-form-label"><span style="text-align:right !important;">Mother's Maiden Name</span></label>
                         <div class="col-sm-3">
-                          <input  placeholder="First Name" name="mother_firstname" type="text" class="form-control" id="inputEmail3" >
-                        </div>
-                        <div class="col-sm-3">
-                          <input  placeholder="Middle Name" name="mother_middlename" type="text" class="form-control" id="inputEmail3" >
-                        </div>
-                        <div class="col-sm-4">
                           <input  placeholder="Last Name" name="mother_lastname" type="text" class="form-control" id="inputEmail3" >
                         </div>
+                        <div class="col-sm-3">
+                          <input  placeholder="First Name" name="mother_firstname" type="text" class="form-control" id="inputEmail3" >
+                        </div>
+                        <div class="col-sm-4">
+                          <input  placeholder="Middle Name" name="mother_middlename" type="text" class="form-control" id="inputEmail3" >
+                        </div>
+                        
                       </div>
 
 
@@ -472,6 +489,14 @@ ORDER BY a.grade_level ASC", $sy["syid"]);
 
 <script src="AdminLTE_new/plugins/jquery-validation/jquery.validate.min.js"></script>
 <script src="AdminLTE_new/plugins/jquery-validation/additional-methods.min.js"></script>
+
+<script>
+$('#student_id').inputmask("LRN40559999999999", {
+  placeholder: "_", // Use underscore as placeholder
+  showMaskOnHover: true,
+  showMaskOnFocus: true
+});
+  </script>
 
 <script>
   $(document).ready(function() {

@@ -300,70 +300,181 @@ WHERE
 
 
 
-		$breakdown = query("
-    SELECT 
-    ef.fee_id,
-    ef.fee,
-    ef.type,
-    ef.amount AS original_fee_amount,
-    -- Cumulative allocation for all payments up to the current payment
-    ROUND((ef.amount / total.total_fee) * cumulative.total_paid_up_to_date, 2) AS cumulative_allocation, 
-    -- Allocation of the specific payment
-    ROUND((ef.amount / total.total_fee) * current_payment.current_payment, 2) AS allocated_payment,       
-    -- Remaining balance after cumulative payments
-    ROUND(ef.amount - ((ef.amount / total.total_fee) * cumulative.total_paid_up_to_date), 2) AS remaining_balance 
-FROM 
-    enrollment_fees ef
-JOIN 
-    (SELECT 
-        enrollment_id,
-        SUM(amount_paid) AS total_paid_up_to_date
-     FROM 
-        payment
-     WHERE 
-        enrollment_id = (SELECT enrollment_id FROM payment WHERE payment_id = ?)
-        AND date_paid <= (SELECT date_paid FROM payment WHERE payment_id = ?)
-    ) AS cumulative ON ef.enrollment_id = cumulative.enrollment_id
-JOIN 
-    (SELECT 
-        enrollment_id,
-        amount_paid AS current_payment
-     FROM 
-        payment
-     WHERE 
-        payment_id = ?
-    ) AS current_payment ON ef.enrollment_id = current_payment.enrollment_id
-JOIN 
-    (SELECT 
-        enrollment_id,
-        SUM(amount) AS total_fee
-     FROM 
-        enrollment_fees
-     WHERE 
-        enrollment_id = (SELECT enrollment_id FROM payment WHERE payment_id = ?)
-     GROUP BY 
-        enrollment_id
-    ) AS total ON ef.enrollment_id = total.enrollment_id
-    
-", $_POST["payment_id"], $_POST["payment_id"], $_POST["payment_id"], $_POST["payment_id"]);
+			// Step 1: Get the payment amounts for the current payment
+			$payment_id = $_POST["payment_id"];
+
+// Fetch the selected payment's info
+$thepayment = query("SELECT enrollment_id, date_paid FROM payment WHERE payment_id = ?", $payment_id);
+
+$enrollment_id = $thepayment[0]['enrollment_id'];
+$date_paid = $thepayment[0]['date_paid'];
+
+// Fetch all fees for the enrollment
+$fees = query("SELECT fee_id, fee, type, amount AS original_fee_amount, priority 
+               FROM enrollment_fees 
+               WHERE enrollment_id = ?", $enrollment_id);
+
+// Build Fee Tracker
+$FeeTracker = [];
+foreach ($fees as $fee) {
+    $FeeTracker[$fee['fee_id']] = [
+        'fee_id' => $fee['fee_id'],
+        'fee' => $fee['fee'],
+        'priority' => $fee['priority'],
+        'type' => $fee['type'],
+        'original_fee_amount' => $fee['original_fee_amount'],
+        'paid_amount' => 0,
+        'remaining_balance' => $fee['original_fee_amount']
+    ];
+}
+
+// Fetch all payments up to and including this one
+$Payments = query("SELECT * FROM payment WHERE enrollment_id = ? AND date_paid <= ? ORDER BY date_paid ASC, payment_id ASC", $enrollment_id, $date_paid);
+
+// Initialize breakdown
+$PaymentBreakdown = [];
+
+foreach ($Payments as $payment) {
+    $payment_amount = $payment['amount_paid'];
+    $allocation = [];
+
+    // Step 1: Allocate to Priority = YES first (normal, not proportional)
+    foreach ($FeeTracker as &$fee) {
+        if ($fee['priority'] !== 'YES') {
+            continue;
+        }
+
+        if ($payment_amount <= 0) {
+            break;
+        }
+
+        if ($fee['remaining_balance'] <= 0) {
+            continue;
+        }
+
+        $to_pay = min($payment_amount, $fee['remaining_balance']);
+
+        $fee['paid_amount'] += $to_pay;
+        $fee['remaining_balance'] -= $to_pay;
+        $payment_amount -= $to_pay;
+
+        $allocation[] = [
+            'fee_id' => $fee['fee_id'],
+            'fee' => $fee['fee'],
+            'priority' => $fee['priority'],
+            'original_fee_amount' => $fee['original_fee_amount'],
+            'allocated_payment' => $to_pay,
+            'remaining_balance_after' => $fee['remaining_balance']
+        ];
+    }
+    unset($fee); // Important: break reference
+
+    // Step 2: Allocate remaining balance to non-priority fees proportionally
+    if ($payment_amount > 0) {
+        // Get total of remaining non-priority balances
+        $non_priority_total = 0;
+        foreach ($FeeTracker as $fee) {
+            if ($fee['priority'] !== 'YES' && $fee['remaining_balance'] > 0) {
+                $non_priority_total += $fee['remaining_balance'];
+            }
+        }
+
+        if ($non_priority_total > 0) {
+            foreach ($FeeTracker as &$fee) {
+                if ($fee['priority'] === 'YES' || $fee['remaining_balance'] <= 0) {
+                    continue;
+                }
+
+                $allocation_ratio = $fee['remaining_balance'] / $non_priority_total;
+                $to_pay = round($allocation_ratio * $payment_amount, 2);
+
+                // Don't allocate more than remaining
+                $to_pay = min($to_pay, $fee['remaining_balance']);
+
+                $fee['paid_amount'] += $to_pay;
+                $fee['remaining_balance'] -= $to_pay;
+
+                $allocation[] = [
+                    'fee_id' => $fee['fee_id'],
+                    'fee' => $fee['fee'],
+                    'priority' => $fee['priority'],
+                    'original_fee_amount' => $fee['original_fee_amount'],
+                    'allocated_payment' => $to_pay,
+                    'remaining_balance_after' => $fee['remaining_balance']
+                ];
+            }
+            unset($fee); // Again, break reference
+        }
+    }
+
+    $PaymentBreakdown[] = [
+        'payment_id' => $payment['payment_id'],
+        'or_number' => $payment['or_number'],
+        'date_paid' => $payment['date_paid'],
+        'amount_paid' => $payment['amount_paid'],
+        'paid_by' => $payment['paid_by'],
+        'method_of_payment' => $payment['method_of_payment'],
+        'cashier' => $payment['cashier'],
+        'allocation' => $allocation
+    ];
+}
+
+// --- Output nicely ---
+
+// dump($FeeTracker);
+// dump($PaymentBreakdown);
+$perAllocation = [];
+
+foreach($PaymentBreakdown as $row):
+	foreach($allocation as $a):
+		$perAllocation[$row["payment_id"]][$a["fee_id"]] = $a;
+	endforeach;
+endforeach;
+// dump($perAllocation);
+
+
+// foreach ($PaymentBreakdown as $payment) {
+//     echo "<h3>Payment ID: {$payment['payment_id']} | Date: {$payment['date_paid']} | Amount Paid: ₱" . number_format($payment['amount_paid'], 2) . "</h3>";
+//     echo "<table border='1' cellpadding='5' cellspacing='0'>";
+//     echo "<tr>
+//             <th>Fee</th>
+//             <th>Priority</th>
+//             <th>Original Amount</th>
+//             <th>Allocated</th>
+//             <th>Remaining After</th>
+//          </tr>";
+
+//     foreach ($payment['allocation'] as $alloc) {
+//         echo "<tr>
+//             <td>{$alloc['fee']}</td>
+//             <td>{$alloc['priority']}</td>
+//             <td>₱" . number_format($alloc['original_fee_amount'], 2) . "</td>
+//             <td>₱" . number_format($alloc['allocated_payment'], 2) . "</td>
+//             <td>₱" . number_format($alloc['remaining_balance_after'], 2) . "</td>
+//         </tr>";
+//     }
+
+//     echo "</table><br>";
+// }
+// exit();
 
 $html.='
 			<div class="background">
 			<br>
 			<div class="row">
 			<div class="col-xs-6">
-					<h5><b>Official Receipt No.</b> '.$payment[0]["or_number"].'</h5>
+					<h5><b>Official Receipt No.</b> '.$PaymentBreakdown[0]["or_number"].'</h5>
 				</div>
 				<div class="col-xs-4">
-					<h5><b>Paid By</b> '.$payment[0]["paid_by"].'</h5>
+					<h5><b>Paid By</b> '.$PaymentBreakdown[0]["paid_by"].'</h5>
 				</div>
 				
 			
 				<div class="col-xs-6">
-					<h5><b>Date Paid</b> '.date('F d, Y h:i a', strtotime($payment[0]["date_paid"])).'</h5>
+					<h5><b>Date Paid</b> '.date('F d, Y h:i a', strtotime($PaymentBreakdown[0]["date_paid"])).'</h5>
 				</div>
 				<div class="col-xs-4">
-					<h5><b>Payment: </b> '.$payment[0]["method_of_payment"].'</h5>
+					<h5><b>Payment: </b> '.$PaymentBreakdown[0]["method_of_payment"].'</h5>
 				</div>
 		
 			</div>
@@ -387,21 +498,30 @@ $html.='
 				$total = 0;
 				$original_fee_amount = 0;
 				$cumulative_allocation = 0;
+				$allocated_payment = 0;
 				$remaining_balance = 0;
-				foreach($breakdown as $row):
-					// dump($row);
+				foreach($FeeTracker as $row):
+					// dump($perAllocation);
 					// $payment = $
 
 					// dump(date("F d, Y", strtotime($row["date_paid"])));
 
 					$original_fee_amount +=floatval($row["original_fee_amount"]);
-					$cumulative_allocation +=floatval($row["cumulative_allocation"]);
+					$allocated = 0;
+					if(isset($perAllocation[$PaymentBreakdown[0]["payment_id"]][$row["fee_id"]])):
+						// dump($perAllocation);
+						$allocated = $perAllocation[$PaymentBreakdown[0]["payment_id"]][$row["fee_id"]]["allocated_payment"];
+					endif;
+
+
+					$allocated_payment +=$allocated;
+					$cumulative_allocation +=floatval($row["paid_amount"]);
 					$remaining_balance +=floatval($row["remaining_balance"]);
 					$html.='<tr>';
 						$html.='<td >'.($row["fee"]).'</td>';
 						$html.='<td class="text-right">'.to_peso($row["original_fee_amount"]).'</td>';
-						$html.='<td class="text-right">'.to_peso($row["cumulative_allocation"]).'</td>';
-						$html.='<td class="text-right">'.to_peso($row["allocated_payment"]).'</td>';
+						$html.='<td class="text-right">'.to_peso($row["paid_amount"]).'</td>';
+						$html.='<td class="text-right">'.to_peso($allocated).'</td>';
 						$html.='<td class="text-right">'.to_peso($row["remaining_balance"]).'</td>';
 					$html.='</tr>';
 				endforeach;
@@ -411,7 +531,7 @@ $html.='
 					<td><b>Total</b></td>
 					<td class="text-right"><b>'.to_peso($original_fee_amount).'</b></td>
 					<td class="text-right"><b>'.to_peso($cumulative_allocation).'</b></td>
-					<td class="text-right"><b>'.to_peso($payment[0]["amount_paid"]).'</b></td>
+					<td class="text-right"><b>'.to_peso($allocated_payment).'</b></td>
 					<td class="text-right"><b>'.to_peso($remaining_balance).'</b></td>
 				</tr>
 			</tfoot>
@@ -465,7 +585,7 @@ $html.='
                                         <tr><td colspan="2" class="center">&nbsp;</td></tr>
                                         <tr>
                                             <td></td>
-                                            <td class="center nw" width="50%" style="border-bottom:1px solid black;"><strong>'.$payment[0]["cashier"].'</strong></td>
+                                            <td class="center nw" width="50%" style="border-bottom:1px solid black;"><strong>'.$PaymentBreakdown[0]["cashier"].'</strong></td>
                                         </tr>
                                         <tr>
                                             <td></td>
@@ -491,7 +611,7 @@ $html.='
 			';
 
 				// dump($payment);
-			$filename = "Invoice - " . $student["lastname"] . ", " . $student["firstname"] . " - " . $payment[0]["or_number"];
+			$filename = "Invoice - " . $student["lastname"] . ", " . $student["firstname"] . " - " . $PaymentBreakdown[0]["or_number"];
 			$path = "reports/".$filename.".pdf";
 			$mpdf->WriteHTML($html);
 			$mpdf->Output($path, \Mpdf\Output\Destination::FILE);
