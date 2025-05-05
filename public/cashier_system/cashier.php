@@ -329,7 +329,7 @@ foreach ($fees as $fee) {
 }
 
 // Fetch all payments up to and including this one
-$Payments = query("SELECT * FROM payment WHERE enrollment_id = ? AND date_paid <= ? ORDER BY date_paid ASC, payment_id ASC", $enrollment_id, $date_paid);
+$Payments = query("SELECT * FROM payment WHERE enrollment_id = ? AND payment_id <= ? ORDER BY payment_id ASC", $enrollment_id, $payment_id);
 
 // Initialize breakdown
 $PaymentBreakdown = [];
