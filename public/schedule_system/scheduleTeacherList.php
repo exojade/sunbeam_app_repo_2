@@ -20,6 +20,7 @@ $schedules = query("
     LEFT JOIN section sec ON sec.section_id = a.section_id
     WHERE s.teacher_id = ?
     AND syid = ?
+    order by a.grade_level asc, sub.subject_title asc
 ", $_SESSION["sunbeam_app"]["userid"], $sy["syid"]);
 // dump($schedules);
 ?>
@@ -134,7 +135,6 @@ $schedules = query("
             $days_string = rtrim($days_string, ',');
             ?>
             <div class="col-md-4">
-
            <?php if($row["has_parent"] == 0): ?>
             <a href="schedule?action=gradeTeacher&id=<?php echo($row["schedule_id"]); ?>&subject_id=<?php echo($row["subject_id"]); ?>">
            <?php else: ?>

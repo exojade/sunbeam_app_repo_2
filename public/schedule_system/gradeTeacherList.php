@@ -250,19 +250,35 @@ $grades = query("select g.*, concat(s.lastname, ', ', s.firstname) as student_na
                   </thead>
                   <tbody>
                     <?php foreach($grades as $row): ?>
+                      <?php
+                        $gradesList = [
+                          $row["first_grading"],
+                          $row["second_grading"],
+                          $row["third_grading"],
+                          $row["fourth_grading"]
+                        ];
+
+                        // Only consider numeric (non-null, non-empty) values
+                        $validGrades = array_filter($gradesList, function($g) {
+                          return is_numeric($g);
+                        });
+
+                        $average = count($validGrades) > 0 ? round(array_sum($validGrades) / count($validGrades), 2) : 'N/A';
+
+                        $remarks = is_numeric($average) && $average >= 75 ? 'PASSED' : 'FAILED';
+                      ?>
                       <tr>
-                        <td><?php echo($row["student_id"]); ?></td>
-                        <td><?php echo($row["student_name"]); ?></td>
-                        <td><?php echo($row["first_grading"]); ?></td>
-                        <td><?php echo($row["second_grading"]); ?></td>
-                        <td><?php echo($row["third_grading"]); ?></td>
-                        <td><?php echo($row["fourth_grading"]); ?></td>
-                        <td><?php echo($row["average"]); ?></td>
-                        <td><?php echo($row["remarks"]); ?></td>
-                    </tr>
+                        <td><?= htmlspecialchars($row["student_id"]); ?></td>
+                        <td><?= htmlspecialchars($row["student_name"]); ?></td>
+                        <td><?= htmlspecialchars($row["first_grading"]); ?></td>
+                        <td><?= htmlspecialchars($row["second_grading"]); ?></td>
+                        <td><?= htmlspecialchars($row["third_grading"]); ?></td>
+                        <td><?= htmlspecialchars($row["fourth_grading"]); ?></td>
+                        <td><?= $average; ?></td>
+                        <td><?= $remarks; ?></td>
+                      </tr>
                     <?php endforeach; ?>
                   </tbody>
-                 
                 </table>
                     <!-- /.post -->
                   </div>
