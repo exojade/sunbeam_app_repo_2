@@ -1,7 +1,18 @@
 <script src="AdminLTE_new/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
 <!-- <script src="AdminLTE_new/dist/js/demo.js"></script> -->
 <script src="AdminLTE_new/plugins/sweetalert2/sweetalert2.min.js"></script>
-
+<script src="AdminLTE_new/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+<script>
+$(function () {
+  $('.main-sidebar .sidebar').overlayScrollbars({
+    className: 'os-theme-light',
+    scrollbars: {
+      autoHide: 'leave',
+      clickScrolling: true
+    }
+  });
+});
+</script>
 <script>
 $(document).on('submit', '.generic_form_trigger', function(e) {
     e.preventDefault(); // Prevent the default form submission

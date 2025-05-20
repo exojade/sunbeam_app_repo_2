@@ -14,6 +14,7 @@
 }
 
 
+
 @media (min-width: 992px) {
     .sidebar-mini.sidebar-collapse #sidebar-logo-mine {
       width: 3rem !important;
@@ -111,12 +112,7 @@
           <p>Class Schedule</p>
         </a>
       </li>
-      <li class="nav-item">
-        <a href="advisory" class="nav-link">
-          <i class="far fa-circle nav-icon"></i>
-          <p>Advisory</p>
-        </a>
-      </li>
+  
 
 
    
@@ -127,7 +123,21 @@
   </li>
 
 
-
+      <!-- <li class="nav-item">
+        <a href="advisory" class="nav-link">
+          <i class="far fa-circle nav-icon"></i>
+          <p>Advisory</p>
+        </a>
+      </li> -->
+ <li class="nav-item">
+      <a href="advisory" class="nav-link">
+        <i class="nav-icon fas fa-building"></i>
+        <p>
+          Advisory
+          <span class="right badge badge-danger"></span>
+        </p>
+      </a>
+  </li>
 
   <li class="nav-item">
       <a href="enrollment" class="nav-link">
