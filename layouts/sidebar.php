@@ -1,5 +1,9 @@
 
 <style>
+  .awit-nav {
+  height: 100vh;
+  overflow-y: auto;
+}
 .user-panel{
   border-bottom: none !important;
 }
@@ -39,7 +43,7 @@
     <div class="sidebar">
 
       <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+        <ul class="nav nav-pills nav-sidebar flex-column awit-nav" data-widget="treeview" role="menu" data-accordion="false">
           <!-- Add icons to the links using the .nav-icon class
                with font-awesome or any other icon font library -->
   <?php if($_SESSION["sunbeam_app"]["role"] == "admin"): ?>
@@ -391,42 +395,6 @@
   </aside>
 
 
-  <!-- <div class="modal fade" id="changePassword">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h4 class="modal-title">Change Password</h4>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="modal-body">
-            <form class="generic_form_trigger" data-url="profile">
-                <input type="hidden" name="action" value="changePassword">
-                <input type="hidden" name="user_id" value="<?php echo($_SESSION["sunbeam_app"]["userid"]) ?>">
-                <div class="form-group">
-                  <label>Current Password</label>
-                  <input name="current_password" required type="password" class="form-control"  placeholder="---">
-                </div>
-
-                <div class="form-group">
-                  <label>New Password</label>
-                  <input name="new_password" required type="password" class="form-control"  placeholder="---">
-                </div>
-
-                <div class="form-group">
-                  <label>Repeat New Password</label>
-                  <input name="repeat_password" required type="password" class="form-control"  placeholder="---">
-                </div>
-            </div>
-            <div class="modal-footer justify-content-between">
-              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-              <button type="submit" class="btn btn-primary">Submit</button>
-            </div>
-          </form>
-          </div>
-        </div>
-      </div> -->
 
       <div class="modal fade" id="modalSwitchUser">
         <div class="modal-dialog">
