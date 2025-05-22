@@ -151,6 +151,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 			left join schedule sched on sched.schedule_id = sg.schedule_id
 			left join teacher t on t.teacher_id = sched.teacher_id
 			where sg.advisory_id = ? and sg.student_id = ?
+			order by STR_TO_DATE(sched.from_time, '%h:%i %p')
 			", $_POST["advisory_id"], $_POST["student_id"]);
 
 			$Subjects = [];
@@ -183,31 +184,47 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 				<tbody>';
 				foreach($grades as $row):
 
-					$subject_name = "";
-					if($Subjects[$row["subject_id"]]["subject_type"] == "PARENT"):
-						$subject_name=$Subjects[$row["subject_id"]]["subject_head_name"];
-					else:
-						$parent = $Subjects[$row["subject_id"]]["subject_parent_id"];
-						$subject_name=$Subjects[$parent]["subject_head_name"] . " - " . $Subjects[$row["subject_id"]]["subject_title"];
-					endif;
+    $subject_name = "";
+    if ($Subjects[$row["subject_id"]]["subject_type"] == "PARENT"):
+        $subject_name = $Subjects[$row["subject_id"]]["subject_head_name"];
+    else:
+        $parent = $Subjects[$row["subject_id"]]["subject_parent_id"];
+        $subject_name = $Subjects[$parent]["subject_head_name"] . " - " . $Subjects[$row["subject_id"]]["subject_title"];
+    endif;
 
+    // Check if all grading periods are set and numeric
+    $has_all_grades = is_numeric($row["first_grading"]) &&
+                      is_numeric($row["second_grading"]) &&
+                      is_numeric($row["third_grading"]) &&
+                      is_numeric($row["fourth_grading"]);
 
+    if ($has_all_grades) {
+        $average = round((
+            $row["first_grading"] +
+            $row["second_grading"] +
+            $row["third_grading"] +
+            $row["fourth_grading"]
+        ) / 4, 2);
 
+        $remarks = ($average >= 75) ? 'PASSED' : 'FAILED';
+    } else {
+        $average = '';
+        $remarks = '';
+    }
 
+    $html .= '<tr>';
+        $html .= '<td>' . $subject_name . '</td>';
+        $html .= '<td>' . $row["from_time"] . ' - ' . $row["to_time"] . '</td>';
+        $html .= '<td>' . $row["teacher_name"] . '</td>';
+        $html .= '<td>' . $row["first_grading"] . '</td>';
+        $html .= '<td>' . $row["second_grading"] . '</td>';
+        $html .= '<td>' . $row["third_grading"] . '</td>';
+        $html .= '<td>' . $row["fourth_grading"] . '</td>';
+        $html .= '<td>' . $average . '</td>';
+        $html .= '<td>' . $remarks . '</td>';
+    $html .= '</tr>';
 
-
-					$html .='<tr>';
-						$html .='<td>'.$subject_name.'</td>';
-						$html .='<td>'.$row["from_time"] . ' - ' . $row["to_time"] .'</td>';
-						$html .='<td>'.$row["teacher_name"] .'</td>';
-						$html .='<td>'.$row["first_grading"] .'</td>';
-						$html .='<td>'.$row["second_grading"] .'</td>';
-						$html .='<td>'.$row["third_grading"] .'</td>';
-						$html .='<td>'.$row["fourth_grading"] .'</td>';
-						$html .='<td>'.$row["average"] .'</td>';
-						$html .='<td>'.$row["remarks"] .'</td>';
-					$html .='</tr>';
-				endforeach;
+endforeach;
 			$html .='	</tbody>
 			</table>
 			';
