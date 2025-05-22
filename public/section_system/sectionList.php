@@ -84,6 +84,33 @@
 
 
 
+      <div class="modal fade" id="updateModal">
+          <div class="modal-dialog">
+            <div class="modal-content ">
+              <div class="modal-header bg-warning">
+					    <h3 class="modal-title text-center">Update Modal</h3>
+              </div>
+              <form class="generic_form_trigger" data-url="section" data-title="Save Section Details" data-message="Are you sure you want to update this information?">
+                <input type="hidden" name="action" value="update_section">
+              <div class="modal-body" style="-webkit-user-select: none;  /* Chrome all / Safari all */
+              -moz-user-select: none;     /* Firefox all */
+              -ms-user-select: none;  ">
+                    <div class="fetched-data"></div>
+                    <br>
+                      <div class="box-footer">
+                        <button type="submit" class=" btn btn-success float-right">Save</button>
+                        <button type="button" class=" btn btn-danger float-right" data-dismiss="modal" aria-label="Close">Close</button>
+                      </div>
+                      <Br>
+                      <Br>
+              </div>
+            </form>
+            </div>
+          </div>
+        </div>
+
+
+
       <div class="container-fluid">
         <div class="row">
           <div class="col-8">
@@ -108,17 +135,16 @@
                    foreach($section as $row):
                    ?>
                     <tr>
-                    
                       <td><?php echo($row["section"]); ?></td>
                       <td><?php echo($row["status"]); ?></td>
                       <td width="10%">
                       <div class="btn-group">
-                      <button type="button" class="btn btn-flat btn-sm btn-warning">Update</button>
+                      <a href="#" data-target="#updateModal" data-toggle="modal" data-id="<?php echo($row["section_id"]); ?>" class="btn btn-sm btn-warning">Update</a>
 
                         <form class="generic_form_trigger" data-url="section" style="display:inline;">
                           <input type="hidden" name="action" value="deleteSection">
                           <input type="hidden" name="section_id" value="<?php echo($row["section_id"]); ?>">
-                        <button type="submit" class="btn btn-sm btn-flat btn-danger">Delete</button>
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                         </form>
                       </div>
                       </td>
@@ -187,6 +213,26 @@
 $('#example1').DataTable({
      
     });
+
+
+    $('#updateModal').on('show.bs.modal', function (e) {
+        var section_id = $(e.relatedTarget).data('id');
+        Swal.fire({title: 'Please wait...', imageUrl: 'AdminLTE_new/dist/img/loader.gif', showConfirmButton: false});
+        $.ajax({
+            type : 'post',
+            url : 'section', //Here you will fetch records 
+            data: {
+              section_id: section_id,
+               action: "updateModal"
+            },
+            success : function(data){
+                $('#updateModal .fetched-data').html(data);
+                Swal.close();
+                // $(".select2").select2();//Show fetched data from database
+            }
+        });
+     });
+
 
 
             function preview() {

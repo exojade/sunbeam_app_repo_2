@@ -42,6 +42,49 @@
 					echo json_encode($res_arr); exit();
 			endif;
 
+		elseif($_POST["action"] == "updateModal"):
+			// dump($_POST);
+
+			$html = "";
+			$section = query("select * from section where section_id = ?", $_POST["section_id"]);
+			$section = $section[0];
+			$html.='<input type="hidden" name="section_id" value="'.$_POST["section_id"].'">';
+			$html.='<div class="form-group">';
+				$html.='<label>Section Name <span class="text-danger">*</span></label>';
+				$html.='<input placeholder="Section Name Here!" type="text" class="form-control" name="section" value="'.$section["section"].'">';
+			$html.='</div>';
+
+			$active_status = ["ACTIVE", "INACTIVE"];
+				$html .= '<div class="form-group">';
+				$html .= '<label>Status <span class="text-danger">*</span></label>';
+				$html .= '<select class="form-control" name="status">';
+
+				foreach ($active_status as $row):
+					$selected = ($section['status'] == $row) ? 'selected' : '';
+					$html .= "<option value=\"$row\" $selected>$row</option>";
+				endforeach;
+
+				$html .= '</select>';
+				$html .= '</div>';
+
+
+			// dump($section);
+
+			echo($html);
+
+		elseif($_POST["action"] == "update_section"):
+			// dump($_POST);
+
+			query("update section set section = ?, status = ? where section_id = ?", $_POST["section"], $_POST["status"], $_POST["section_id"]);
+				$res_arr = [
+					"result" => "success",
+					"title" => "Success",
+					"message" => "Updated Section Successfully!",
+					"link" => "section",
+					// "html" => '<a href="#">View or Print '.$transaction_id.'</a>'
+					];
+					echo json_encode($res_arr); exit();
+
 		endif;
     }
 	else {

@@ -26,21 +26,56 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 			// $all_data = query($baseQuery);
 
 
+// dump(get_defined_vars());
+// if($currentInstallmentNumber != 0)
+			$where="";
+			$outstanding_balance = query("
+			SELECT 
+				e.student_id,
+				SUM(CASE WHEN is_paid = 'CREDIT' OR is_paid = 'NOT DONE' THEN amount_due ELSE 0 END) AS total_amount
+			FROM 
+				installment ins
+			left join enrollment e
+			on e.enrollment_id = ins.enrollment_id
+			WHERE 
+				ins.installment_number <= 11
+			group by e.student_id
+			");
 
-			if($search != ""):
-				$baseQuery .= " where firstname like '%".$search."%' or lastname like '%".$search."%'";
-				$data = query($baseQuery . $limitString . $offsetString);
-			else:
-				$data = query($baseQuery . $limitString . $offsetString);
-				$all_data = query($baseQuery);
+			$OB = [];
+			foreach($outstanding_balance as $row):
+				$OB[$row["student_id"]] = $row;
+			endforeach;
+
+			if(isset($_REQUEST["student_id"])):
+				if($_REQUEST["student_id"] != ""):
+					$where.=" where student_id = '".$_REQUEST["student_id"]."'";
+				endif;
 			endif;
 
+			// dump($outstanding_balance);
+
+
+
+			// if($search != ""):
+			// 	$baseQuery .= " where firstname like '%".$search."%' or lastname like '%".$search."%'";
+			// 	$data = query($baseQuery . $limitString . $offsetString);
+			// else:
+				
+				
+			// endif;
+			$data = query($baseQuery . $where . $limitString . $offsetString);
+			$all_data = query($baseQuery . $where);
 
 			$i=0;
 			foreach($data as $row):
 				$data[$i]["action"] = '<a href="studentAccounts?action=specific&id='.$row["student_id"].'" class="btn btn-sm btn-block btn-info">Visit</a>';
 				$data[$i]["name"] = $row["lastname"] . ", " . $row["firstname"];
 				$data[$i]["address"] = $row["city_mun"] . ", " . $row["barangay"] . ", " . $row["address"];
+				$data[$i]["balance"] = "";
+				if(isset($OB[$row["student_id"]])):
+					$data[$i]["balance"] = to_peso($OB[$row["student_id"]]["total_amount"]);
+				endif;
 				$i++;
 			endforeach;
             $json_data = array(

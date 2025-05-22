@@ -118,7 +118,7 @@ var datatable =
                     { data: 'student_id', "orderable": false  },
                     { data: 'name', "orderable": false  },
                     { data: 'address', "orderable": false  },
-                    { data: 'address', "orderable": false  },
+                    { data: 'balance', "orderable": false  },
                 ],
                 "footerCallback": function (row, data, start, end, display) {
                     // var api = this.api(), data;
@@ -145,7 +145,7 @@ var datatable =
 
             $('.selectFilter').on('change', function() {
               var student_id = $('#studentSelect').val() || "";
-              datatable.ajax.url('enrollment?action=enrollmentList&student_id='+student_id).load();
+              datatable.ajax.url('studentAccounts?action=studentAccountsList&student_id='+student_id).load();
               });
             function preview() {
                 frame.src = URL.createObjectURL(event.target.files[0]);
