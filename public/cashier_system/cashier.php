@@ -329,7 +329,8 @@ foreach ($fees as $fee) {
 }
 
 // Fetch all payments up to and including this one
-$Payments = query("SELECT * FROM payment WHERE enrollment_id = ? AND payment_id <= ? ORDER BY payment_id ASC", $enrollment_id, $payment_id);
+$Payments = query("SELECT p.*, u.fullname as cashier FROM payment p left join users u
+					on u.id = p.cashier WHERE enrollment_id = ? AND payment_id <= ? ORDER BY payment_id ASC", $enrollment_id, $payment_id);
 
 // Initialize breakdown
 $PaymentBreakdown = [];

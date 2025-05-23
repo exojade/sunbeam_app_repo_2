@@ -147,14 +147,12 @@
 
 			$i = 0;
 			foreach($data as $row):
-				$data[$i]["action"] = '<div class="btn-group">
-				<button type="button" class="btn btn-sm btn-flat btn-warning">Update</button>
+				$data[$i]["action"] = '<div class="btn-group btn-block">
 				<form class="generic_form_trigger" data-url="schedule" style="display:inline;">
 					<input type="hidden" name="action" value="deleteSchedule">
 					<input type="hidden" name="schedule_id" value="'.$row["schedule_id"].'">
-					<button type="submit" class="btn btn-sm btn-flat btn-danger">Delete</button>
+					<button type="submit" class="btn btn-sm btn-danger">Delete</button>
 				</form>
-			
 			  </div>';
 			  $days_string = '';
 			if ($row["monday"] == 1) {
