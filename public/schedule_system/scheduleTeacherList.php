@@ -6,23 +6,41 @@
 // dump($_SESSION);
 $schedules = query("
     SELECT 
-        s.*, 
-        sec.section, 
-        sub.subject_code, 
-        a.grade_level AS gradeLevel,
-        CASE 
-            WHEN sub.subject_id IN (SELECT subject_parent_id FROM subjects WHERE subject_parent_id IS NOT NULL) THEN 1
-            ELSE 0
-        END AS has_parent
-    FROM schedule s
-    LEFT JOIN advisory a ON a.advisory_id = s.advisory_id
-    LEFT JOIN subjects sub ON sub.subject_id = s.subject_id
-    LEFT JOIN section sec ON sec.section_id = a.section_id
-    WHERE s.teacher_id = ?
-    AND syid = ?
-    order by a.grade_level asc, sub.subject_title asc
+    s.*, 
+    sec.section, 
+    sub.subject_code, 
+    a.grade_level AS gradeLevel,
+    CASE 
+        WHEN a.grade_level = 'Kindergarten 1' THEN 'FFD700' -- Gold
+        WHEN a.grade_level = 'Grade 1' THEN 'FF4500'         -- OrangeRed
+        WHEN a.grade_level = 'Grade 2' THEN '00CED1'         -- DarkTurquoise
+        WHEN a.grade_level = 'Grade 3' THEN 'BA55D3'         -- MediumOrchid
+        WHEN a.grade_level = 'Grade 4' THEN '1E90FF'         -- DodgerBlue
+        WHEN a.grade_level = 'Grade 5' THEN '006400'         -- DarkGreen
+        WHEN a.grade_level = 'Grade 6' THEN 'FFA500'         -- Orange
+        ELSE 'CCCCCC' -- fallback color
+    END AS grade_color,
+    CASE 
+        WHEN sub.subject_id IN (SELECT subject_parent_id FROM subjects WHERE subject_parent_id IS NOT NULL) THEN 1
+        ELSE 0
+    END AS has_parent
+FROM schedule s
+LEFT JOIN advisory a ON a.advisory_id = s.advisory_id
+LEFT JOIN subjects sub ON sub.subject_id = s.subject_id
+LEFT JOIN section sec ON sec.section_id = a.section_id
+WHERE s.teacher_id = ?
+AND syid = ?
+ORDER BY a.grade_level ASC, sub.subject_title ASC
 ", $_SESSION["sunbeam_app"]["userid"], $sy["syid"]);
 // dump($schedules);
+
+function getTextColor($hexColor) {
+    $r = hexdec(substr($hexColor, 0, 2));
+    $g = hexdec(substr($hexColor, 2, 2));
+    $b = hexdec(substr($hexColor, 4, 2));
+    $brightness = (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
+    return ($brightness > 128) ? '#000' : '#fff';
+}
 ?>
 
 <div class="content-wrapper">
@@ -32,7 +50,6 @@ $schedules = query("
         <div class="row mb-2">
           <div class="col-sm-6">
             <h1>My Classrooms</h1>
-            <small>Current SY: 2023 - 2024</small>
           </div>
         </div>
       </div><!-- /.container-fluid -->
@@ -140,10 +157,13 @@ $schedules = query("
            <?php else: ?>
             <a href="schedule?action=childSubjects&id=<?php echo($row["schedule_id"]); ?>">
            <?php endif; ?>
-            
+            <?php
+            $bgColor = $row["grade_color"];
+            $textColor = getTextColor($bgColor);
+            ?>
             <div class="card card-widget widget-user">
               <!-- Add the bg color to the header using any of the bg-* classes -->
-              <div class="widget-user-header bg-info">
+              <div class="widget-user-header" style="background-color: #<?php echo($bgColor); ?>; color: <?php echo $textColor ?>">
                 <h3 class="widget-user-username"><?php echo($row["subject_code"]); ?></h3>
                 <h5 class="widget-user-desc"><?php echo($row["gradeLevel"]); ?> - 
                          <?php echo($row["section"]); ?></h5>

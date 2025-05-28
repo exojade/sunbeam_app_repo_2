@@ -372,41 +372,47 @@ foreach ($Payments as $payment) {
 
     // Step 2: Allocate remaining balance to non-priority fees proportionally
     if ($payment_amount > 0) {
-        // Get total of remaining non-priority balances
-        $non_priority_total = 0;
-        foreach ($FeeTracker as $fee) {
-            if ($fee['priority'] !== 'YES' && $fee['remaining_balance'] > 0) {
-                $non_priority_total += $fee['remaining_balance'];
-            }
-        }
+    // Get total of remaining non-priority balances
+    $non_priority_fees = [];
+    $non_priority_total = 0;
 
-        if ($non_priority_total > 0) {
-            foreach ($FeeTracker as &$fee) {
-                if ($fee['priority'] === 'YES' || $fee['remaining_balance'] <= 0) {
-                    continue;
-                }
-
-                $allocation_ratio = $fee['remaining_balance'] / $non_priority_total;
-                $to_pay = round($allocation_ratio * $payment_amount, 2);
-
-                // Don't allocate more than remaining
-                $to_pay = min($to_pay, $fee['remaining_balance']);
-
-                $fee['paid_amount'] += $to_pay;
-                $fee['remaining_balance'] -= $to_pay;
-
-                $allocation[] = [
-                    'fee_id' => $fee['fee_id'],
-                    'fee' => $fee['fee'],
-                    'priority' => $fee['priority'],
-                    'original_fee_amount' => $fee['original_fee_amount'],
-                    'allocated_payment' => $to_pay,
-                    'remaining_balance_after' => $fee['remaining_balance']
-                ];
-            }
-            unset($fee); // Again, break reference
+    foreach ($FeeTracker as $fee) {
+        if ($fee['priority'] !== 'YES' && $fee['remaining_balance'] > 0) {
+            $non_priority_fees[] = &$FeeTracker[$fee['fee_id']];
+            $non_priority_total += $fee['remaining_balance'];
         }
     }
+
+    if ($non_priority_total > 0) {
+        $remaining_to_allocate = $payment_amount;
+        $count = count($non_priority_fees);
+
+        foreach ($non_priority_fees as $index => &$fee) {
+            if ($index === $count - 1) {
+                // Last fee absorbs the remaining amount
+                $to_pay = $remaining_to_allocate;
+            } else {
+                $allocation_ratio = $fee['remaining_balance'] / $non_priority_total;
+                $to_pay = round($allocation_ratio * $payment_amount, 2);
+                $to_pay = min($to_pay, $fee['remaining_balance']);
+                $remaining_to_allocate -= $to_pay;
+            }
+
+            $fee['paid_amount'] += $to_pay;
+            $fee['remaining_balance'] -= $to_pay;
+
+            $allocation[] = [
+                'fee_id' => $fee['fee_id'],
+                'fee' => $fee['fee'],
+                'priority' => $fee['priority'],
+                'original_fee_amount' => $fee['original_fee_amount'],
+                'allocated_payment' => $to_pay,
+                'remaining_balance_after' => $fee['remaining_balance']
+            ];
+        }
+        unset($fee);
+    }
+}
 
     $PaymentBreakdown[] = [
         'payment_id' => $payment['payment_id'],
